@@ -1,0 +1,9 @@
+you need to install the dependencies
+
+pip install -r requirements.txt
+
+to run the server side execute this command 
+uvicorn main:app --reload
+
+to run the client side execute this command
+python client.py

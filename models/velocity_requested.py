@@ -1,0 +1,5 @@
+from enum import Enum
+
+class VelocityRequested(str, Enum):
+    VELOCITY_IS_NOT_REQUESTED = "VELOCITY_IS_NOT_REQUESTED"
+    VELOCITY_IS_REQUESTED = "VELOCITY_IS_REQUESTED"

@@ -1,0 +1,18 @@
+from enum import Enum
+
+class PositioningMethod(str, Enum):
+    CELLID = "CELLID"
+    ECID = "ECID"
+    OTDOA = "OTDOA"
+    BAROMETRIC_PRESSURE = "BAROMETRIC_PRESSURE"
+    WLAN = "WLAN"
+    BLUETOOTH = "BLUETOOTH"
+    MBS = "MBS"
+    MOTION_SENSOR = "MOTION_SENSOR"
+    DL_TDOA = "DL_TDOA"
+    DL_AOD = "DL_AOD"
+    MULTI_RTT = "MULTI-RTT"
+    NR_ECID = "NR_ECID"
+    UL_TDOA = "UL_TDOA"
+    UL_AOA = "UL_AOA"
+    NETWORK_SPECIFIC = "NETWORK_SPECIFIC"
