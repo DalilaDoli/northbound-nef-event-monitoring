@@ -7,3 +7,55 @@ uvicorn main:app --reload
 
 to run the client side execute this command
 python client.py
+
+to test the different method :
+------------------create subscription------------------------------------------------------------------------------
+POST http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions
+
+{
+        "notificationDestination": "test_destination",
+        "monitoringType": "LOCATION_REPORTING"
+}
+
+----------------fetch all the subscriptions---------------------------------------------------------------------------
+GET http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions
+
+-------------------------fetch an individual subcription-------------------------------------------------------------
+GET http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
+
+--------------------------update an individual subscription-----------------------------------------------------------------
+PUT http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
+
+{
+    "notificationDestination": "test_destination",
+    "monitoringType": "LOSS_OF_CONNECTIVITY"
+}
+
+----------------------------delete an individual subscription-----------------------------------------------------------
+
+DELETE http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
+
+-------------------------------Notification--------------------------------------------------------------------------
+POST http://localhost:8000/3gpp-monitoring-event/v1/test
+
+{
+    "subscription": "example_subscription",
+    "configResults": [
+        {
+            "externalIds": [""],
+            "msisdns": [""],
+            "resultReason": "ROAMING_NOT_ALLOWED"
+        }
+    ],
+    "monitoringEventReports": [
+        {
+            "monitoringType": "LOSS_OF_CONNECTIVITY"
+        }
+    ],
+    "addedExternalIds": [""],
+    "addedMsisdns": [""],
+    "cancelExternalIds": [""],
+    "cancelMsisdns": [""],
+    "cancelInd": true
+}
+

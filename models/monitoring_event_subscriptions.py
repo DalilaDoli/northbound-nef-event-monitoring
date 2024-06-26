@@ -40,7 +40,7 @@ class Accuracy(str, Enum):
 
     
 class MonitoringEventSubscription(BaseModel):
-    # msisdn: str = Field(default="")
+    msisdn: str = Field(default="")
     ExternalId: str = Field(default="")
     notificationDestination: str
     monitoringType: MonitoringType
@@ -91,14 +91,14 @@ class MonitoringEventSubscription(BaseModel):
     websock_notif_config: Optional[WebsockNotifConfig] = Field(default=None, alias="websockNotifConfig")
     reachability_type: Optional[ReachabilityType] = Field(default=None, alias="reachabilityType")
     location_type: Optional[LocationType] = Field(default=None, alias="locationType")
-    # accuracy: Optional[Accuracy] = Field(default="")  
+    accuracy: Optional[Accuracy] = Field(default=None)  
     ldr_type: Optional[LdrType] = Field(default=None, alias="ldrType")
     velocity_requested: Optional[VelocityRequested] = Field(default=None, alias="velocityRequested")
     loc_time_window: Optional[TimeWindow] = Field(default=None, alias="locTimeWindow")
     supported_gad_shapes: Optional[List[SupportedGADShapes]] = Field(default=None, alias="supportedGADShapes")
     association_type: Optional[AssociationType] = Field(default=None, alldrTypeias="associationType")
     ddd_stati: Optional[Annotated[List[DlDataDeliveryStatus], Field(min_length=1)]] = Field(default=None, alias="dddStati")
-    # snssai: Optional[Snssai] = Field(default=None)
+    snssai: Optional[Snssai] = Field(default=None)
     tgt_ns_threshold: Optional[SACInfo] = Field(default=None, alias="tgtNsThreshold")
     ns_rep_format: Optional[SACRepFormat] = Field(default=None, alias="nsRepFormat")
     uav_policy: Optional[UavPolicy] = Field(default=None, alias="uavPolicy")
