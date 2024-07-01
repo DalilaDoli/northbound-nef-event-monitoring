@@ -15,9 +15,7 @@ class DeleteResponse(BaseModel):
     message: str
 
 class SubscriptionResponse(BaseModel):
-    message: str
-    subscriptions: List[Dict[str, Any]]
-
+    subscriptions: List[dict]
 class APIClient:
     def __init__(self, base_url: str):
         self.base_url = base_url
