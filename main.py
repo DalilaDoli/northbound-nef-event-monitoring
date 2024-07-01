@@ -1,104 +1,151 @@
-from typing import Any, Dict, List
-import uuid
+from bson import ObjectId
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from pymongo import MongoClient
+from typing import List
+from enum import Enum
+from pymongo.errors import AutoReconnect
 from models.monitoring_event_subscriptions import MonitoringEventSubscription
-import json
-
 from models.monitoring_notification import MonitoringNotification
+
+
+
+client = MongoClient('localhost', 27017)
+db = client.test  
+collection = db.monitoring_event_subscriptions  
+collection_notif = db.monitoring_notifications
 
 app = FastAPI()
 
+next_subscription_id = 1
+
 class SubscriptionResponse(BaseModel):
-    message: str
-    subscriptions: List[Dict[str, Any]]
-    
-last_subscription_id = 0
+    subscriptions: List[dict]
 
-subscriptions_db: Dict[int, MonitoringEventSubscription] = {}
-scsAsId_subscriptions_mapping: Dict[int, str] = {}
+class OneSubscriptionResponse(BaseModel):
+    subscriptionId: str
+    subscription: dict
+    monitoringType: str
 
+def get_next_sequence(name):
+    try:
+        counters = db.counters
+        counter = counters.find_one_and_update(
+            {"_id": name},
+            {"$inc": {"seq": 1}},
+            upsert=True,
+            return_document=True
+        )
+        return counter['seq']
+    except AutoReconnect:
+        pass
+
+def insert_subscription(subscription_dict):
+    subscription_dict['_id'] = get_next_sequence('subscription_id')
+    result = collection.insert_one(subscription_dict)
+    return subscription_dict['_id']
 
 @app.post("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions")
 async def create_subscription(scsAsId: str, subscription: MonitoringEventSubscription):
-    global last_subscription_id
+    try:
+        subscription_dict = subscription.dict()
+        subscription_dict['scsAsId'] = scsAsId 
+        inserted_id = insert_subscription(subscription_dict)
 
-    last_subscription_id += 1
-
-    subscription_id = last_subscription_id
-    subscriptions_db[subscription_id] = subscription
-
-    scsAsId_subscriptions_mapping[last_subscription_id] = scsAsId  # Stocker scsAsId en relation avec subscription_id
-
-    response_data = {
-        "message from server": "Subscription created successfully",
-        "subscriptionId": subscription_id,
-        "subscription from server": subscription.model_dump(),
-        "monitoringType": subscription.monitoringType,
-                "scsAsId from server": scsAsId
-
-    }
-
-    print("Le monitoring type est :", subscription.monitoringType)
-    print("La subscription type est :", subscription)
-
-    return JSONResponse(content=response_data, status_code=201)
+        return {
+            "message": "Souscription créée avec succès",
+            "subscription_id": str(inserted_id),  
+            "subscription": subscription  
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la création de la souscription: {str(e)}")
 
 @app.get("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions", response_model=SubscriptionResponse)
 async def get_subscriptions(scsAsId: str):
-    matching_subscriptions = []
-    for subscription_id, subscription in subscriptions_db.items():
-        if scsAsId_subscriptions_mapping.get(subscription_id) == scsAsId:
-            subscription_with_id = subscription.model_dump()
-            subscription_with_id["subscription_id"] = subscription_id
-            matching_subscriptions.append(subscription_with_id)
-    
+    matching_subscriptions = list(collection.find({"scsAsId": scsAsId}))
+
     if not matching_subscriptions:
         raise HTTPException(status_code=404, detail="No subscriptions found for the provided SCS/AS ID")
     
-    return SubscriptionResponse(message="Subscriptions found from server", subscriptions=matching_subscriptions)
+    # Construire la liste des souscriptions sans inclure le champ subscription_id dans la réponse
+    subscriptions = []
+    for sub in matching_subscriptions:
+        sub_copy = sub.copy()
+        if '_id' in sub_copy:
+            sub_copy['subscription_id'] = str(sub_copy.pop('_id'))
+        subscriptions.append(sub_copy)
+
+    return {"subscriptions": subscriptions}
 
 @app.get("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscription_id}")
 async def get_subscription(scsAsId: str, subscription_id: int):
-    
+    try:
+        subscription = collection.find_one({"_id": subscription_id, "scsAsId": scsAsId})
 
-    if subscription_id not in subscriptions_db:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        if subscription is None:
+            raise HTTPException(status_code=404, detail="Subscription not found")
 
-    subscription = subscriptions_db[subscription_id]
+        response = {
+            "subscription": subscription,
+           
+        }
 
-    return {
-        "message from server": "Subscription found",
-        "subscriptionId": subscription_id,
-        "subscription from server": subscription.model_dump(),
-        "monitoringType": subscription.monitoringType
-    }
+        return response
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch subscription: {str(e)}")
 
 @app.put("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}", response_model=MonitoringEventSubscription)
 async def update_subscription(scsAsId: str, subscriptionId: int, subscription: MonitoringEventSubscription):
-    if subscriptionId not in subscriptions_db:
-        raise HTTPException(status_code=404, detail="Subscription not found")
-    
-    # Mettre à jour la subscription dans la base de données
-    subscriptions_db[subscriptionId] = subscription
+    try:
+        update_result = collection.update_one(
+            {"_id": subscriptionId, "scsAsId": scsAsId},
+            {"$set": subscription.dict(exclude_unset=True)}
+        )
 
-    return subscription
+        if update_result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+
+        return subscription
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update subscription: {str(e)}")
 
 @app.delete("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}")
 async def delete_subscription(scsAsId: str, subscriptionId: int):
-    if subscriptionId not in subscriptions_db:
-        raise HTTPException(status_code=404, detail="Subscription not found")
-    
-    # Supprimer la subscription de la base de données
-    del subscriptions_db[subscriptionId]
-    
-    return {
-        "message from server": "Subscription deleted successfully"
-    }
+    try:
+        query = {"_id": subscriptionId, "scsAsId": scsAsId}
+        result = collection.delete_one(query)
 
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+
+        return {"message from server": "Subscription deleted successfully"}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete subscription: {str(e)}")
+    
 @app.post("/3gpp-monitoring-event/v1/{notificationDestination}")
 async def receive_monitoring_notification(notificationDestination: str, notification: MonitoringNotification):
-    print("Received notification:", notification)
+    try:
+        notification_dict = notification.dict()
+        notification_dict['notificationDestination'] = notificationDestination  
+        inserted_result = collection_notif.insert_one(notification_dict)
 
-    return {"message": "Notification received successfully"}, notification
+        print("Received notification:", notification)
+
+        return {"message": "Notification received and stored successfully", "Received notification:": notification}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to store notification: {str(e)}")
+
+
+    
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8000)
