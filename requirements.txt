@@ -1,3 +1,6 @@
 fastapi
+pydantic
+pymongo
 uvicorn
 requests
+python-dotenv

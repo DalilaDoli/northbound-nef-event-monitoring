@@ -21,33 +21,39 @@ from models.ue_per_location_report import UePerLocationReport
 
 
 class MonitoringEventReport(BaseModel):
- 
     imei_change: Optional[AssociationType] = Field(default=None, alias="imeiChange")
-    external_id: Optional[StrictStr] = Field(default=None, description="string containing a local identifier followed by \"@\" and a domain identifier. Both the local identifier and the domain identifier shall be encoded as strings that do not contain any \"@\" characters. See Clause 4.6.2 of 3GPP TS 23.682 for more information. ", alias="externalId")
+    external_id: Optional[StrictStr] = Field(default=None, description="String containing a local identifier followed by '@' and a domain identifier.")
     app_id: Optional[StrictStr] = Field(default=None, description="String providing an application identifier.", alias="appId")
     pdu_sess_info: Optional[PduSessionInformation] = Field(default=None, alias="pduSessInfo")
     idle_status_info: Optional[IdleStatusInfo] = Field(default=None, alias="idleStatusInfo")
     location_info: Optional[LocationInfo] = Field(default=None, alias="locationInfo")
     loc_failure_cause: Optional[LocationFailureCause] = Field(default=None, alias="locFailureCause")
-    loss_of_connect_reason: Optional[StrictInt] = Field(default=None, description="If \"monitoringType\" is \"LOSS_OF_CONNECTIVITY\", this parameter shall be included if available to identify the reason why loss of connectivity is reported. Refer to 3GPP TS 29.336 clause 8.4.58. ", alias="lossOfConnectReason")
+    loss_of_connect_reason: Optional[StrictInt] = Field(default=None, description="If 'monitoringType' is 'LOSS_OF_CONNECTIVITY', this parameter shall be included if available to identify the reason why.")
     unavail_per_dur: Optional[Annotated[int, Field(strict=True, ge=0)]] = Field(default=None, description="Unsigned integer identifying a period of time in units of seconds.", alias="unavailPerDur")
-    max_ue_availability_time: Optional[datetime] = Field(default=None, description="string with format \"date-time\" as defined in OpenAPI.", alias="maxUEAvailabilityTime")
-    msisdn: Optional[StrictStr] = Field(default=None, description="string formatted according to clause 3.3 of 3GPP TS 23.003 that describes an MSISDN. ")
+    max_ue_availability_time: Optional[datetime] = Field(default=None, description="String with format 'date-time' as defined in OpenAPI.", alias="maxUEAvailabilityTime")
+    msisdn: Optional[StrictStr] = Field(default=None, description="String formatted according to clause 3.3 of 3GPP TS 23.003 that describes an MSISDN.")
     monitoringType: MonitoringType
     ue_per_location_report: Optional[UePerLocationReport] = Field(default=None, alias="uePerLocationReport")
     plmn_id: Optional[PlmnId] = Field(default=None, alias="plmnId")
     reachability_type: Optional[ReachabilityType] = Field(default=None, alias="reachabilityType")
-    roaming_status: Optional[StrictBool] = Field(default=None, description="If \"monitoringType\" is \"ROAMING_STATUS\", this parameter shall be set to \"true\" if the new serving PLMN is different from the HPLMN. Set to false or omitted otherwise. ", alias="roamingStatus")
+    roaming_status: Optional[StrictBool] = Field(default=None, description="If 'monitoringType' is 'ROAMING_STATUS', this parameter shall be set to 'true' if the new serving PLMN is different from the HPLMN.")
     failure_cause: Optional[FailureCause] = Field(default=None, alias="failureCause")
-    event_time: Optional[datetime] = Field(default=None, description="string with format \"date-time\" as defined in OpenAPI.", alias="eventTime")
+    event_time: Optional[datetime] = Field(default=None, description="String with format 'date-time' as defined in OpenAPI.", alias="eventTime")
     pdn_conn_info_list: Optional[Annotated[List[PdnConnectionInformation], Field(min_length=1)]] = Field(default=None, alias="pdnConnInfoList")
     ddd_status: Optional[DlDataDeliveryStatus] = Field(default=None, alias="dddStatus")
     ddd_traf_descriptor: Optional[DddTrafficDescriptor] = Field(default=None, alias="dddTrafDescriptor")
-    max_wait_time: Optional[datetime] = Field(default=None, description="string with format \"date-time\" as defined in OpenAPI.", alias="maxWaitTime")
+    max_wait_time: Optional[datetime] = Field(default=None, description="String with format 'date-time' as defined in OpenAPI.", alias="maxWaitTime")
     api_caps: Optional[Annotated[List[ApiCapabilityInfo], Field(min_length=0)]] = Field(default=None, alias="apiCaps")
     n_s_status_info: Optional[SACEventStatus] = Field(default=None, alias="nSStatusInfo")
     af_service_id: Optional[StrictStr] = Field(default=None, alias="afServiceId")
-    serv_level_dev_id: Optional[StrictStr] = Field(default=None, description="If \"monitoringType\" is \"AREA_OF_INTEREST\", this parameter may be included to identify the UAV. ", alias="servLevelDevId")
-    uav_pres_ind: Optional[StrictBool] = Field(default=None, description="If \"monitoringType\" is \"AREA_OF_INTEREST\", this parameter shall be set to true if the specified UAV is in the monitoring area. Set to false or omitted otherwise. ", alias="uavPresInd")
+    serv_level_dev_id: Optional[StrictStr] = Field(default=None, description="If 'monitoringType' is 'AREA_OF_INTEREST', this parameter may be included to identify the UAV.", alias="servLevelDevId")
+    uav_pres_ind: Optional[StrictBool] = Field(default=None, description="If 'monitoringType' is 'AREA_OF_INTEREST', this parameter shall be set to true if the specified UAV is in the monitoring area.")
     group_memb_list_changes: Optional[GroupMembListChanges] = Field(default=None, alias="groupMembListChanges")
-    __properties: ClassVar[List[str]] = ["imeiChange", "externalId", "appId", "pduSessInfo", "idleStatusInfo", "locationInfo", "locFailureCause", "lossOfConnectReason", "unavailPerDur", "maxUEAvailabilityTime", "msisdn", "monitoringType", "uePerLocationReport", "plmnId", "reachabilityType", "roamingStatus", "failureCause", "eventTime", "pdnConnInfoList", "dddStatus", "dddTrafDescriptor", "maxWaitTime", "apiCaps", "nSStatusInfo", "afServiceId", "servLevelDevId", "uavPresInd", "groupMembListChanges"]
+    __properties: ClassVar[List[str]] = [
+        "imeiChange", "externalId", "appId", "pduSessInfo", "idleStatusInfo", "locationInfo", "locFailureCause",
+        "lossOfConnectReason", "unavailPerDur", "maxUEAvailabilityTime", "msisdn", "monitoringType", "uePerLocationReport",
+        "plmnId", "reachabilityType", "roamingStatus", "failureCause", "eventTime", "pdnConnInfoList", "dddStatus",
+        "dddTrafDescriptor", "maxWaitTime", "apiCaps", "nSStatusInfo", "afServiceId", "servLevelDevId", "uavPresInd",
+        "groupMembListChanges"
+    ]
+

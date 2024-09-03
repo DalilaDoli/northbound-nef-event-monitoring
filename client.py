@@ -16,6 +16,7 @@ class DeleteResponse(BaseModel):
 
 class SubscriptionResponse(BaseModel):
     subscriptions: List[dict]
+
 class APIClient:
     def __init__(self, base_url: str):
         self.base_url = base_url
@@ -32,7 +33,7 @@ class APIClient:
             }
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}
-    
+
     def get_all_subscriptions(self, scsAsId: str):
         url = f"{self.base_url}/3gpp-monitoring-event/v1/{scsAsId}/subscriptions"
         try:
@@ -41,7 +42,7 @@ class APIClient:
             return response.json()
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}
-    
+
     def get_subscription(self, scsAsId: str, subscriptionId: str):
         url = f"{self.base_url}/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}"
         try:
@@ -63,7 +64,7 @@ class APIClient:
                 }
             except requests.exceptions.RequestException as e:
                 return {"error": str(e)}
-            
+
     def delete_subscription(self, scsAsId: str, subscriptionId: str):
         url = f"{self.base_url}/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}"
         try:
@@ -76,7 +77,7 @@ class APIClient:
 
 @app.post("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions", response_model=APISuccessResponse)
 async def create_subscription(scsAsId: str, subscription: MonitoringEventSubscription):
-    client = APIClient(base_url="http://localhost:8000")
+    client = APIClient(base_url="http://event_monitoring_server:8005")
     response = client.create_subscription(scsAsId, subscription)
     print("Response:", response)
     if "error" in response:
@@ -87,8 +88,6 @@ async def create_subscription(scsAsId: str, subscription: MonitoringEventSubscri
     location = response.get("location")
 
     print("Response Headers:", headers)
-
-    # Création de la réponse JSON avec gestion des en-têtes
     json_response_content = {
         "message": "Subscription created successfully",
         "subscription": data
@@ -106,18 +105,19 @@ async def create_subscription(scsAsId: str, subscription: MonitoringEventSubscri
 
 @app.get("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions", response_model=SubscriptionResponse)
 async def get_all_subscriptions(scsAsId: str):
-    client = APIClient(base_url="http://localhost:8000")
+
+    client = APIClient(base_url="http://event_monitoring_server:8005")
     response = client.get_all_subscriptions(scsAsId)
-    
+
     if "error" in response:
         raise HTTPException(status_code=500, detail=response["error"])
 
-    subscriptions = response  # Assuming response is a list of subscriptions or empty list
+    subscriptions = response
     return subscriptions
 
 @app.get("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}", response_model=APISuccessResponse)
 async def get_subscription_handler(scsAsId: str, subscriptionId: str):
-    client = APIClient(base_url="http://localhost:8000")  # Replace with your actual server address
+    client = APIClient(base_url="http://event_monitoring_server:8005")
     response = client.get_subscription(scsAsId, subscriptionId)
     if "error" in response:
         raise HTTPException(status_code=500, detail=response["error"])
@@ -127,9 +127,9 @@ async def get_subscription_handler(scsAsId: str, subscriptionId: str):
 
 @app.put("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}", response_model=APISuccessResponse)
 async def update_subscription_handler(scsAsId: str, subscriptionId: str, subscription: MonitoringEventSubscription):
-    api_client = APIClient(base_url="http://localhost:8000")
+    api_client = APIClient(base_url="http://event_monitoring_server:8005")
     response = api_client.update_subscription(scsAsId, subscriptionId, subscription)
-    
+
     if "error" in response:
         raise HTTPException(status_code=500, detail=response["error"])
 
@@ -150,14 +150,14 @@ async def update_subscription_handler(scsAsId: str, subscriptionId: str, subscri
 
 @app.delete("/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}", response_model=DeleteResponse)
 async def delete_subscription_handler(scsAsId: str, subscriptionId: str):
-    api_client = APIClient(base_url="http://localhost:8000")
+    api_client = APIClient(base_url="http://event_monitoring_server:8005")
     response = api_client.delete_subscription(scsAsId, subscriptionId)
     if "error" in response:
         raise HTTPException(status_code=500, detail=response["error"])
 
     return DeleteResponse(message="Subscription deleted successfully")
 
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8006)
+
