@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  event_monitoring_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: event_monitoring_server
+    ports:
+      - "8005:8005"
+    networks:
+      - nef_network
+    env_file:
+      - .env
+  
+  event_monitoring_client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: event_monitoring_client
+    ports:
+      - "8006:8006"
+    networks:
+      - nef_network
+
+  mongo:
+    image: mongo
+    container_name: mongo_fing
+    ports:
+      - "27017:27017"
+    networks:
+      - nef_network
+networks:
+  nef_network:
+    driver: bridge

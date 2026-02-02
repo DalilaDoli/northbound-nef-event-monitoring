@@ -1,29 +1,95 @@
-you need to install the dependencies
+====================== README.md ======================
+
+# 📡 NEF Northbound Event Monitoring API
+
+## 📌 Description
+This project implements the **3GPP Event Monitoring service of the NEF (Network Exposure Function) Northbound interface**.
+
+It allows external applications (**SCS / AS**) to subscribe to **network monitoring events** and receive **asynchronous notifications** when those events occur, following the **3GPP event-driven model**.
+
+The API is built with **FastAPI** and uses **MongoDB** for persistence.
+
+---
+
+## 📡 NEF Northbound Monitoring Event – Concept Overview
+
+The **Monitoring Event service** is part of the **3GPP NEF Northbound interface**, which exposes selected network capabilities to external applications in a secure and controlled way.
+
+Instead of continuously querying the network, applications register **event subscriptions** that describe:
+- the type of network event to monitor
+- the notification destination (callback URL)
+- the monitoring scope
+
+Once the subscription is created, the NEF monitors the network conditions and **pushes notifications** to the application whenever the monitored event occurs.
+
+### 🔍 Examples of Monitoring Events
+- Location reporting
+- Loss of connectivity
+- Roaming status changes
+- Reachability status
+- Other network state changes
+
+### 🔄 Subscription & Notification Workflow
+1. An application (SCS/AS) sends a **subscription request** to the NEF Northbound API.
+2. The NEF validates and stores the subscription.
+3. The network continuously monitors the requested event.
+4. When the event occurs, the NEF sends a **notification callback** to the specified destination.
+5. The application processes the received notification.
+
+This event-driven model provides:
+- real-time event delivery
+- reduced signaling overhead
+- efficient network exposure
+- secure access to network information
+
+---
+
+## ⚙️ Installation & Setup
+
+Before running the application, install the required dependencies:
 
 pip install -r requirements.txt
 
-to run the server side execute this command 
+---
+
+## ▶️ Run the Application
+
+### Run the server side (API)
 uvicorn main:app --reload
 
-to run the client side execute this command
+API available at:
+http://localhost:8001
+
+---
+
+### Run the client side
 python client.py
 
-to test the different method :
-------------------create subscription------------------------------------------------------------------------------
+---
+
+## 🧪 API Testing
+
+### Create a subscription
 POST http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions
 
 {
-        "notificationDestination": "test_destination",
-        "monitoringType": "LOCATION_REPORTING"
+    "notificationDestination": "test_destination",
+    "monitoringType": "LOCATION_REPORTING"
 }
 
-----------------fetch all the subscriptions---------------------------------------------------------------------------
+---
+
+### Fetch all subscriptions
 GET http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions
 
--------------------------fetch an individual subcription-------------------------------------------------------------
+---
+
+### Fetch an individual subscription
 GET http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
 
---------------------------update an individual subscription-----------------------------------------------------------------
+---
+
+### Update an individual subscription
 PUT http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
 
 {
@@ -31,11 +97,14 @@ PUT http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
     "monitoringType": "LOSS_OF_CONNECTIVITY"
 }
 
-----------------------------delete an individual subscription-----------------------------------------------------------
+---
 
+### Delete an individual subscription
 DELETE http://localhost:8001/3gpp-monitoring-event/v1/12345/subscriptions/1
 
--------------------------------Notification--------------------------------------------------------------------------
+---
+
+### Send a monitoring notification
 POST http://localhost:8000/3gpp-monitoring-event/v1/test
 
 {
@@ -58,4 +127,15 @@ POST http://localhost:8000/3gpp-monitoring-event/v1/test
     "cancelMsisdns": [""],
     "cancelInd": true
 }
+
+---
+
+## 🛠️ Technologies Used
+- Python 3.9+
+- FastAPI
+- MongoDB
+- PyMongo
+- Pydantic
+- JWT Authentication
+- Uvicorn
 
